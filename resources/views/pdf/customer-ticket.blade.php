@@ -112,6 +112,12 @@
 
     </table>
 
+    <div style="text-align:center">
+        <p>Escanea el código QR para realizar tu agendamiento</p>
+
+        <img src="data:image/svg+xml;base64, {!! $qrCode !!}" alt="QR Code" width="200" height="200">
+    </div>
+    
     <div class="footer">
         Documento generado automáticamente por FLOWACCESS
     </div>

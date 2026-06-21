@@ -32,6 +32,19 @@ class PublicAppointment extends Component
             return;
         }
 
+        $hasActiveOrFinishedAppointment = Appointment::where('IdCustomer', $this->customer->IdCustomer)
+            ->where(function ($query) {
+                // Bloquear si el EstadoAgen es nulo (cita futura/pendiente) o si es "Asistio"
+                $query->whereNull('EstadoAgen')
+                      ->orWhere('EstadoAgen', '!=', 'No asistio');
+            })
+            ->exists();
+
+        if ($hasActiveOrFinishedAppointment) {
+            $this->addError('codigo', 'Ya tienes una cita activa o ya has asistido a una anteriormente.');
+            return;
+        }
+
         $this->mostrarAgenda = true;
     }
 

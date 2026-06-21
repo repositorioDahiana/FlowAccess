@@ -15,6 +15,7 @@ class Appointment extends Model
         'IdAvailability',
         'Status',
         'Notes',
+        'EstadoAgen'
     ];
 
     public function customer()

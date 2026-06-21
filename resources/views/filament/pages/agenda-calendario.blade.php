@@ -50,9 +50,15 @@
                                             🟢 {{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }}
                                         </div>
                                     @else
-                                        <div class="text-xs px-2 py-1 rounded bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 truncate shadow-sm opacity-80" title="{{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }} - Agendada">
-                                            🔴 {{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }}
-                                        </div>
+                                        @if($avail->appointments->isNotEmpty())
+                                            <button wire:click="mountAction('updateAppointment', { appointmentId: {{ $avail->appointments->first()->IdAppointment }} })" type="button" class="w-full text-left text-xs px-2 py-1 rounded bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 truncate shadow-sm hover:bg-red-200 dark:hover:bg-red-800 transition cursor-pointer" title="{{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }} - Agendada">
+                                                🔴 {{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }}
+                                            </button>
+                                        @else
+                                            <div class="text-xs px-2 py-1 rounded bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border border-red-200 dark:border-red-800 truncate shadow-sm opacity-80" title="{{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }} - Agendada">
+                                                🔴 {{ \Carbon\Carbon::parse($avail->AvailableTime)->format('H:i') }}
+                                            </div>
+                                        @endif
                                     @endif
                                 @endforeach
                             @endif

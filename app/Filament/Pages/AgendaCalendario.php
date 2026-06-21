@@ -4,7 +4,13 @@ namespace App\Filament\Pages;
 
 use Filament\Pages\Page;
 use App\Models\Availability;
+use App\Models\Appointment;
 use Carbon\Carbon;
+use Filament\Actions\Action;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Placeholder;
+use Filament\Notifications\Notification;
 
 class AgendaCalendario extends Page
 {
@@ -49,7 +55,8 @@ class AgendaCalendario extends Page
         $endOfMonth = $startOfMonth->copy()->endOfMonth();
 
         // Get availability for this month
-        $availabilities = Availability::whereBetween('AvailableDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
+        $availabilities = Availability::with('appointments.customer')
+            ->whereBetween('AvailableDate', [$startOfMonth->format('Y-m-d'), $endOfMonth->format('Y-m-d')])
             ->orderBy('AvailableTime')
             ->get();
 
@@ -73,5 +80,52 @@ class AgendaCalendario extends Page
             'firstDayOfWeek' => $firstDayOfWeek,
             'availabilitiesByDay' => $availabilitiesByDay,
         ];
+    }
+
+    public function updateAppointmentAction(): Action
+    {
+        return Action::make('updateAppointment')
+            ->label('Gestionar Cita')
+            ->modalHeading('Detalles de la Cita')
+            ->fillForm(function (array $arguments): array {
+                $appointment = Appointment::with('customer')->find($arguments['appointmentId']);
+                $customerInfo = 'Cliente no encontrado';
+                if ($appointment && $appointment->customer) {
+                    $customerInfo = 'Nombre: ' . $appointment->customer->Nombre . ' - Teléfono: ' . $appointment->customer->Telefono . ' - Cod: ' . $appointment->customer->CodigoCustomer;
+                }
+
+                return [
+                    'customerInfo' => $customerInfo,
+                    'EstadoAgen' => $appointment?->EstadoAgen,
+                    'Notes' => $appointment?->Notes,
+                ];
+            })
+            ->form([
+                Placeholder::make('Customer')
+                    ->label('Datos del Cliente')
+                    ->content(fn (\Filament\Forms\Get $get) => $get('customerInfo')),
+                Select::make('EstadoAgen')
+                    ->label('Estado de Asistencia')
+                    ->options([
+                        'Asistio' => 'Asistió',
+                        'No asistio' => 'No asistió',
+                    ]),
+                Textarea::make('Notes')
+                    ->label('Nota para el cliente')
+                    ->rows(3),
+            ])
+            ->action(function (array $arguments, array $data): void {
+                $appointment = Appointment::find($arguments['appointmentId']);
+                if ($appointment) {
+                    $appointment->update([
+                        'EstadoAgen' => $data['EstadoAgen'],
+                        'Notes' => $data['Notes'],
+                    ]);
+                    Notification::make()
+                        ->title('Cita actualizada exitosamente')
+                        ->success()
+                        ->send();
+                }
+            });
     }
 }
